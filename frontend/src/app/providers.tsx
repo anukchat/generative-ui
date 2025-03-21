@@ -5,8 +5,11 @@ import { useChat, type UseChatHelpers, type Message } from 'ai/react'
 import { StockChart } from '@/components/StockChart'
 import { WeatherCard } from '@/components/WeatherCard'
 
-// Use the UseChatHelpers type from our declaration file
-type ChatContextType = UseChatHelpers
+// Extend the UseChatHelpers type with our custom functions
+interface ChatContextType extends UseChatHelpers {
+  parseMessageContent: (content: string) => string;
+  renderMessageComponents: (content: string) => JSX.Element[];
+}
 
 // Create a context to share chat state across components
 const ChatContext = createContext<ChatContextType | null>(null)
@@ -30,9 +33,7 @@ export function MyRuntimeProvider({ children }: { children: ReactNode }) {
     },
   })
   
-  // The chatHelpers already has the correct type
-
-  // Function to parse and render JSON components from messages
+  // Create the extended chat context with our custom functions
   const parseMessageContent = (content: string) => {
     try {
       // Try to find JSON objects in the message content
@@ -111,9 +112,16 @@ export function MyRuntimeProvider({ children }: { children: ReactNode }) {
     return components
   }
 
+  // Create the extended context value
+  const extendedChatHelpers: ChatContextType = {
+    ...chatHelpers,
+    parseMessageContent,
+    renderMessageComponents
+  }
+
   // Provide the chat context to children
   return (
-    <ChatContext.Provider value={chatHelpers}>
+    <ChatContext.Provider value={extendedChatHelpers}>
       {children}
     </ChatContext.Provider>
   )
